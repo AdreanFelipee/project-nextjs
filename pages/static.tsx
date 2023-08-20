@@ -1,4 +1,4 @@
-import { GetServerSideProps, NextPage } from "next";
+import { GetServerSideProps, GetStaticProps, NextPage } from "next";
 import { ReactNode, useEffect, useState } from "react";
 import { Col, Container, Row } from "reactstrap";
 
@@ -7,14 +7,23 @@ interface ApiResponse {
     timeStamp: string; // Alterado para string, pois o valor da API é uma string
 }
 
-interface DynamicProps {
-    serverSideData?: ApiResponse;
+export const getStaticProps: GetStaticProps = async () => {
+    const staticData = await fetch(`${process.env.NEXT_PUBLIC_APIURL}/api/hello`).then(res => res.json())
+
+    return {
+        props: {
+            staticData
+        }
+    }
 }
 
 
+const Static: NextPage = (props: {
+    children?: ReactNode
+    staticData?: ApiResponse
+}) => {
 
-const Dynamic: NextPage<DynamicProps> = (props) => {
-    const [clientSideData, setClientSideData] = useState<ApiResponse | undefined>();
+    const [clientSideData, setClientSideData] = useState<ApiResponse>();
 
     useEffect(() => {
         fetchData();
@@ -31,12 +40,13 @@ const Dynamic: NextPage<DynamicProps> = (props) => {
 
             <Row>
                 <Col>
-                    <h3>Gerado no servidor:</h3>
-                    <h2>{props.serverSideData?.timeStamp}</h2>
+                    <h3>Gerado estaticamente durante o biuld:</h3>
+                    <h2>{props.staticData?.timeStamp.toString()}</h2>
                 </Col>
                 <Col>
                     <h3>Gerado no cliente:</h3>
                     <h2>{clientSideData?.timeStamp}</h2>
+
                 </Col>
             </Row>
         </Container>
@@ -45,4 +55,4 @@ const Dynamic: NextPage<DynamicProps> = (props) => {
 
 
 
-export default Dynamic;
+export default Static;
